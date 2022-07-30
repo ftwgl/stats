@@ -1,4 +1,4 @@
-for  rounds in json_dict['stats']['TsRounds']:
+for rounds in match_stats['stats']['TsRounds']:
 	hs=0
 	nades=0
 	for hits in rounds['HitLog']:
