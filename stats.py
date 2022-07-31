@@ -21,16 +21,18 @@ def stats_table(match_stats: dict):
         headshots_taken[player['PlayerNo']] = 0
 
     for round in match_stats['TsRounds']:
-        for kill in round['KillLog']:
-            if kill['Weapon'] == 'HE':
-                nade_kills[kill['Killer']] += 1
-                nade_deaths[kill['Killed']] += 1
+        if round['KillLog'] is not None:
+            for kill in round['KillLog']:
+                if kill['Weapon'] == 'HE':
+                    nade_kills[kill['Killer']] += 1
+                    nade_deaths[kill['Killed']] += 1
 
-        for hit in round['HitLog']:
-            if hit['Location'] in ['HEAD', 'HELMET']:
+        if round['HitLog'] is not None:
+            for hit in round['HitLog']:
                 if hit['Location'] in ['HEAD', 'HELMET']:
-                    headshots_given[hit['Shooter']] += 1
-                    headshots_taken[hit['Hit']] += 1
+                    if hit['Location'] in ['HEAD', 'HELMET']:
+                        headshots_given[hit['Shooter']] += 1
+                        headshots_taken[hit['Hit']] += 1
 
     for player in match_stats['Players']:
         if not player['Kills'] == 0 and not player['Deaths'] == 0:  # Ignore players who didn't play
@@ -50,21 +52,30 @@ def stats_table(match_stats: dict):
                     else:
                         multikills[3] += 1
 
-            for c in player['TS']['LastAlive']:
-                if 'Clutch' in player['TS']:
+            if player['TS']['LastAlive'] is not None:
+                for c in player['TS']['LastAlive']:
+                    if 'Clutch' in player['TS']:
 
-                    for clutch in player['TS']['Clutch']:
-                        if clutch == c['Round']:
-                            if c['Opponents'] == 1:
-                                clutches[0] += 1
-                            elif c['Opponents'] == 2:
-                                clutches[1] += 1
-                            elif c['Opponents'] == 3:
-                                clutches[2] += 1
-                            elif c['Opponents'] == 4:
-                                clutches[3] += 1
-                            elif c['Opponents'] == 5:
-                                clutches[4] += 1
+                        for clutch in player['TS']['Clutch']:
+                            if clutch == c['Round']:
+                                if c['Opponents'] == 1:
+                                    clutches[0] += 1
+                                elif c['Opponents'] == 2:
+                                    clutches[1] += 1
+                                elif c['Opponents'] == 3:
+                                    clutches[2] += 1
+                                elif c['Opponents'] == 4:
+                                    clutches[3] += 1
+                                elif c['Opponents'] == 5:
+                                    clutches[4] += 1
+
+            la = 0
+            if player['TS']['LastAlive'] is not None:
+                la = len(player['TS']['LastAlive'])
+
+            cp = 0
+            if la > 0:
+                cp = (sum(clutches) / la) * 100
             
             table[player['PlayerNo']] = [
                 Stat('Kills', 'K', player['Kills']),
@@ -91,8 +102,8 @@ def stats_table(match_stats: dict):
                 Stat('1v3 Clutch', '1v3', clutches[2]),
                 Stat('1v4 Clutch', '1v3', clutches[3]),
                 Stat('1v5 Clutch', '1v5', clutches[4]),
-                Stat('Last Alive', 'LA', len(player['TS']['LastAlive'])),
-                Stat('Clutch Percentage', 'CP', sum(clutches) / len(player['TS']['LastAlive']) * 100),
+                Stat('Last Alive', 'LA', la),
+                Stat('Clutch Percentage', 'CP', cp),
                 Stat('Entry Frags', 'EF', player['EntryFrags']),
                 Stat('Entry Deaths', 'ED', player['EntryFragged']),
                 Stat('Entry Kill/Death Ratio', 'EKD', player['EntryFrags'] - player['EntryFragged']),
@@ -113,6 +124,7 @@ if __name__ == '__main__':
 
         extracted_stats = stats_table(stats)
 
-        print(stats['Players'][9]['Name'])
-        for stat in extracted_stats[9]:
+        playerNo = 9
+        print(stats['Players'][playerNo]['Name'])
+        for stat in extracted_stats[playerNo]:
             print(f"{stat.stat  : <25} {stat.abbreviation  : ^20} {round(stat.value, 2)  : >20}")
