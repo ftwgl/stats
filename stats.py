@@ -14,13 +14,13 @@ def stats_table(match_stats: dict):
     headshots_given = {}
     headshots_taken = {}
 
-    for player in match_stats['stats']['Players']:
+    for player in match_stats['Players']:
         nade_kills[player['PlayerNo']] = 0
         nade_deaths[player['PlayerNo']] = 0
         headshots_given[player['PlayerNo']] = 0
         headshots_taken[player['PlayerNo']] = 0
 
-    for round in match_stats['stats']['TsRounds']:
+    for round in match_stats['TsRounds']:
         for kill in round['KillLog']:
             if kill['Weapon'] == 'HE':
                 nade_kills[kill['Killer']] += 1
@@ -32,7 +32,7 @@ def stats_table(match_stats: dict):
                     headshots_given[hit['Shooter']] += 1
                     headshots_taken[hit['Hit']] += 1
 
-    for player in match_stats['stats']['Players']:
+    for player in match_stats['Players']:
         if not player['Kills'] == 0 and not player['Deaths'] == 0:  # Ignore players who didn't play
             # mk          2  3  4  5
             multikills = [0, 0, 0, 0]
@@ -113,6 +113,6 @@ if __name__ == '__main__':
 
         extracted_stats = stats_table(stats)
 
-        print(stats['stats']['Players'][9]['Name'])
+        print(stats['Players'][9]['Name'])
         for stat in extracted_stats[9]:
             print(f"{stat.stat  : <25} {stat.abbreviation  : ^20} {round(stat.value, 2)  : >20}")
