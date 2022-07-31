@@ -1,6 +1,36 @@
 # As seen here: https://ftwgl.net/match/1674
+
+class Stat:
+    def __init__(self, stat: str, abbreviation: str, value):
+        self.stat: str = stat
+        self.abbreviation: str = abbreviation
+        self.value = value
+
 def stats_table(match_stats: dict):
     table = {}
+
+    nade_kills = {}
+    nade_deaths = {}
+    headshots_given = {}
+    headshots_taken = {}
+
+    for player in match_stats['stats']['Players']:
+        nade_kills[player['PlayerNo']] = 0
+        nade_deaths[player['PlayerNo']] = 0
+        headshots_given[player['PlayerNo']] = 0
+        headshots_taken[player['PlayerNo']] = 0
+
+    for round in match_stats['stats']['TsRounds']:
+        for kill in round['KillLog']:
+            if kill['Weapon'] == 'HE':
+                nade_kills[kill['Killer']] += 1
+                nade_deaths[kill['Killed']] += 1
+
+        for hit in round['HitLog']:
+            if hit['Location'] in ['HEAD', 'HELMET']:
+                if hit['Location'] in ['HEAD', 'HELMET']:
+                    headshots_given[hit['Shooter']] += 1
+                    headshots_taken[hit['Hit']] += 1
 
     for player in match_stats['stats']['Players']:
         if not player['Kills'] == 0 and not player['Deaths'] == 0:  # Ignore players who didn't play
@@ -35,31 +65,42 @@ def stats_table(match_stats: dict):
                                 clutches[3] += 1
                             elif c['Opponents'] == 5:
                                 clutches[4] += 1
-
-            table[player['Name']] = [
-                player['Kills'],
-                player['Deaths'],
-                player['Assists'],
-                player['Kills'] / player['Deaths'],
-                (player['Kills'] + player['Assists']) / player['Deaths'],
-                player['Damage'],
-                player['DamageTaken'],
-                player['Damage'] / player['DamageTaken'],
-                player['Damage'] / len(player['TS']['Kills']),
-                player['TeamDamage'],
-                player['TeamDamageTaken'],
-                player['TeamKills'],
-                player['TeamKilled'],
-                player['Suicides'],
-                multikills[0], multikills[1], multikills[2], multikills[3],
-                sum(multikills) / (len(player['TS']['Kills'])) * 100,
-                clutches[0], clutches[1], clutches[2], clutches[3], clutches[4],
-                len(player['TS']['LastAlive']),
-                sum(clutches) / len(player['TS']['LastAlive']) * 100,
-                player['EntryFrags'],
-                player['EntryFragged'],
-                player['EntryFrags'] - player['EntryFragged'],
-                player['SecondsAlive']
+            
+            table[player['PlayerNo']] = [
+                Stat('Kills', 'K', player['Kills']),
+                Stat('Deaths', 'D', player['Deaths']),
+                Stat('Assists', 'A', player['Assists']),
+                Stat('Kill Death Ratio', 'KDR', player['Kills'] / player['Deaths']),
+                Stat('Kill Death Assist Ratio', 'KDA', (player['Kills'] + player['Assists']) / player['Deaths']),
+                Stat('Damage Given', 'DG', player['Damage']),
+                Stat('Damage Taken', 'DT', player['DamageTaken']),
+                Stat('Damage Ratio', 'DR', player['Damage'] / player['DamageTaken']),
+                Stat('Average Damage Round', 'ADR', player['Damage'] / len(player['TS']['Kills'])),
+                Stat('Friendly Damage Given', 'FDG', player['TeamDamage']),
+                Stat('Friendly Damage Taken', 'FDT', player['TeamDamageTaken']),
+                Stat('Friendly Kills', 'FK', player['TeamKills']),
+                Stat('Friendly Deaths', 'FD', player['TeamKilled']),
+                Stat('Suicides', 'S', player['Suicides']),
+                Stat('2K Multikill', '2K', multikills[0]),
+                Stat('3K Multikill', '3K', multikills[1]),
+                Stat('4K Multikill', '4K', multikills[2]),
+                Stat('5K Multikill', '5K', multikills[3]),
+                Stat('Multikill Percent', 'MKP', sum(multikills) / (len(player['TS']['Kills'])) * 100),
+                Stat('1v1 Clutch', '1v1', clutches[0]),
+                Stat('1v2 Clutch', '1v2', clutches[1]),
+                Stat('1v3 Clutch', '1v3', clutches[2]),
+                Stat('1v4 Clutch', '1v3', clutches[3]),
+                Stat('1v5 Clutch', '1v5', clutches[4]),
+                Stat('Last Alive', 'LA', len(player['TS']['LastAlive'])),
+                Stat('Clutch Percentage', 'CP', sum(clutches) / len(player['TS']['LastAlive']) * 100),
+                Stat('Entry Frags', 'EF', player['EntryFrags']),
+                Stat('Entry Deaths', 'ED', player['EntryFragged']),
+                Stat('Entry Kill/Death Ratio', 'EKD', player['EntryFrags'] - player['EntryFragged']),
+                Stat('Seconds Alive', 'SA', player['SecondsAlive']),
+                Stat('Nade Kills', 'NK', nade_kills[player['PlayerNo']]),
+                Stat('Nade Deaths', 'ND', nade_deaths[player['PlayerNo']]),
+                Stat('Headshots', 'HS', headshots_given[player['PlayerNo']]),
+                Stat('Headshots Taken', 'HST', headshots_taken[player['PlayerNo']])
             ]
     return table
 
@@ -70,15 +111,8 @@ if __name__ == '__main__':
     with open('sample_data.json') as f:
         stats = json.loads(f.read())
 
-        headings = ['Kills', 'Deaths', 'Assists', 'K/D', 'KA/D', 'Damage Given', 'Damage Taken',
-                    'Damage Ratio', 'Average Damage per Round', 'Friendly Damage Given', 'Friendly Damage Taken',
-                    'Friendly Kills', 'Friendly Deaths', 'Suicides',
-                    '2K', '3K', '4K', '5K', 'Multi Kill Percentage',  # Multi kills
-                    '1v1', '1v2', '1v3', '1v4', '1v5',  # Clutches
-                    'Last Alive', 'Clutch Percentage', 'Entry Kills', 'Entry Deaths', 'Entry Kill +/-', 'Seconds Alive']
-
         extracted_stats = stats_table(stats)
 
-        for i in range(0, len(headings)):
-            print(headings[i], extracted_stats['solitary'][i])
-
+        print(stats['stats']['Players'][9]['Name'])
+        for stat in extracted_stats[9]:
+            print(f"{stat.stat  : <25} {stat.abbreviation  : ^20} {round(stat.value, 2)  : >20}")
