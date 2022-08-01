@@ -21,8 +21,6 @@ while i < (len(player['TS']['Kills'])-1):
 		continuation = 0
 		absence = 0 
 		
-		if absence > antistreak:
-			antistreak = absence			
 	i+=1
 
 streak+=1
