@@ -76,6 +76,10 @@ def stats_table(match_stats: dict):
             cp = 0
             if la > 0:
                 cp = (sum(clutches) / la) * 100
+
+            dr = 0
+            if player['DamageTaken'] > 0:
+                dr = player['Damage'] / player['DamageTaken']
             
             table[player['PlayerNo']] = [
                 Stat('Kills', 'K', player['Kills']),
@@ -85,7 +89,7 @@ def stats_table(match_stats: dict):
                 Stat('Kill Death Assist Ratio', 'KDA', (player['Kills'] + player['Assists']) / player['Deaths']),
                 Stat('Damage Given', 'DG', player['Damage']),
                 Stat('Damage Taken', 'DT', player['DamageTaken']),
-                Stat('Damage Ratio', 'DR', player['Damage'] / player['DamageTaken']),
+                Stat('Damage Ratio', 'DR', dr),
                 Stat('Average Damage Round', 'ADR', player['Damage'] / len(player['TS']['Kills'])),
                 Stat('Friendly Damage Given', 'FDG', player['TeamDamage']),
                 Stat('Friendly Damage Taken', 'FDT', player['TeamDamageTaken']),
