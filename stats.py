@@ -30,9 +30,8 @@ def stats_table(match_stats: dict):
         if round['HitLog'] is not None:
             for hit in round['HitLog']:
                 if hit['Location'] in ['HEAD', 'HELMET']:
-                    if hit['Location'] in ['HEAD', 'HELMET']:
-                        headshots_given[hit['Shooter']] += 1
-                        headshots_taken[hit['Hit']] += 1
+                    headshots_given[hit['Shooter']] += 1
+                    headshots_taken[hit['Hit']] += 1
 
     for player in match_stats['Players']:
         if not player['Kills'] == 0 and not player['Deaths'] == 0:  # Ignore players who didn't play
